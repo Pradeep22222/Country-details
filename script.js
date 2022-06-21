@@ -48,7 +48,52 @@ const renderCountry = function (data, className) {
 
 // Here we are doing AJAX call using modern ES6 feature call fetch API method.
 // It might be  better idea to use arrow function in the following case
-const getCountryData = function (country) {
+// Now lets work on rejected promises handling baby
+const getCountryData1 = function (country) {
+  fetch(`https://restcountries.com/v3.1/name/${country}`)
+    .then(
+      function (response) {
+        return response.json();
+      },
+      // this is the another call back function which we pass with the first then method on the fetch to catch error or to handle the error
+      err => {
+        alert(err);
+      }
+    )
+    .then(function (datas) {
+      const [data] = datas;
+      renderCountry(data);
+      const neighbour = Object.values(data.borders)[0];
+      if (!neighbour) {
+        return;
+      }
+      return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`);
+    })
+    .then(
+      function (response) {
+        return response.json();
+      },
+      function (error) {
+        //This is the error handling for this another chained fetch Ajax call
+        alert(error);
+      }
+    )
+    .then(function (data) {
+      const [data2] = data;
+      renderCountry(data2, 'neighbourCountry');
+    });
+};
+
+/// Here we make fetch request inside the last call back of the first fetch
+/// but but apply then method outside the callback from all the beginning again.
+// If we use then method along with this together it will be a  callback again
+
+btn.addEventListener('click', function () {
+  getCountryData1('nepal');
+});
+//   As in above chained fetch request, we can see the error handling call back function passed in two different request separately, we can avoid doing it by simpley
+// passing a single fetch method at the end of the chain as below:
+const getCountryData2 = function (country) {
   fetch(`https://restcountries.com/v3.1/name/${country}`)
     .then(function (response) {
       return response.json();
@@ -65,12 +110,15 @@ const getCountryData = function (country) {
     .then(function (response) {
       return response.json();
     })
-    .then(function (data) {
-      const [data2] = data;
-      renderCountry(data2, 'neighbourCountry');
-    });
+    .then(
+      function (data) {
+        const [data2] = data;
+        renderCountry(data2, 'neighbourCountry');
+      }.catch(err => alert(err))
+    );
 };
-getCountryData('nepal');
-/// Here we make fetch request inside the last call back of the first fetch
-/// but but apply then method outside the callback from all the beginning again.
-// If we use then method along with this together it will be a  callback again
+// Here it looks like there is only one error handling .
+// But the fetch method pass the value in such a way that the error handling function will now be available on all request as if they were the second call back from
+// function for error handling on the first then method of all requests.
+// So if there were different types of errors for different request,  it will be treated like it was the same error for all requests because the same single fetch method was called
+// is going into all requests for handling the error.
