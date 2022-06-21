@@ -56,6 +56,21 @@ const getCountryData = function (country) {
     .then(function (datas) {
       const [data] = datas;
       renderCountry(data);
+      const neighbour = Object.values(data.borders)[0];
+      if (!neighbour) {
+        return;
+      }
+      return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`);
+    })
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      const [data2] = data;
+      renderCountry(data2, 'neighbourCountry');
     });
 };
-getCountryData('portugal');
+getCountryData('nepal');
+/// Here we make fetch request inside the last call back of the first fetch
+/// but but apply then method outside the callback from all the beginning again.
+// If we use then method along with this together it will be a  callback again
