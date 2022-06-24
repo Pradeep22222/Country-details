@@ -96,9 +96,51 @@ const renderCountry = function (data, className) {
 
 //   As in above chained fetch request, we can see the error handling call back function passed in two different request separately, we can avoid doing it by simpley
 // passing a single fetch method at the end of the chain as below:
+// const getCountryData2 = function (country) {
+//   fetch(`https://restcountries.com/v3.1/name/${country}`)
+//     .then(function (response) {
+//       return response.json();
+//     })
+//     .then(function (datas) {
+//       const [data] = datas;
+//       renderCountry(data);
+//       const neighbour = Object.values(data.borders)[0];
+//       if (!neighbour) {
+//         return;
+//       }
+//       return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`);
+//     })
+//     .then(function (response) {
+//       return response.json();
+//     })
+//     .then(function (data) {
+//       const [data2] = data;
+//       renderCountry(data2, 'neighbourCountry');
+//     })
+//     .catch(err => {
+//       renderError(err);
+//     })
+//     .finally(() => {
+//       countriesContainer.style.opacity = 1;
+//     });
+// };
+btn.addEventListener('click', function () {
+  getCountryData2('dafds');
+});
+// Here it looks like there is only one error handling .
+// But the fetch method pass the value in such a way that the error handling function will now be available on all request as if they were the second call back from
+// function for error handling on the first then method of all requests.
+// So if there were different types of errors for different request,  it will be treated like it was the same error for all requests because the same single fetch method was called
+// is going into all requests for handling the error.
+
+// Throwing errors manually
 const getCountryData2 = function (country) {
   fetch(`https://restcountries.com/v3.1/name/${country}`)
     .then(function (response) {
+      //  following is the three lines to throw the errors manually. Here if the response.ok is false we are throwing an error
+      if (!response.ok) {
+        throw new Error(`country not found ${response.status}`);
+      }
       return response.json();
     })
     .then(function (datas) {
@@ -124,11 +166,3 @@ const getCountryData2 = function (country) {
       countriesContainer.style.opacity = 1;
     });
 };
-btn.addEventListener('click', function () {
-  getCountryData2('nepal');
-});
-// Here it looks like there is only one error handling .
-// But the fetch method pass the value in such a way that the error handling function will now be available on all request as if they were the second call back from
-// function for error handling on the first then method of all requests.
-// So if there were different types of errors for different request,  it will be treated like it was the same error for all requests because the same single fetch method was called
-// is going into all requests for handling the error.
